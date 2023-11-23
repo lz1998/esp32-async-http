@@ -1,0 +1,27 @@
+[package]
+name = "esp32-async-http"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["std"]
+
+std = ["esp-idf-hal/std"]
+no_std = ["esp-idf-hal/critical-section"]
+
+[dependencies]
+esp-idf-sys = { version = "0.33", default-features = false }
+esp-idf-hal = { version = "0.42", default-features = false }
+embedded-io-async = { version = "0.6.0", default-features = false }
+#futures = { version = "0.3", default-features = false, features = ["alloc"] }
+#futures-util = { version = "0.3", default-features = false, features = ["alloc"] }
+#futures-core = { version = "0.3", default-features = false, features = ["alloc"] }
+#futures-task = { version = "0.3", default-features = false, features = ["alloc"] }
+
+[dev-dependencies]
+esp-idf-sys = { version = "0.33", default-features = false, features = ["binstart", "alloc_handler"] }
+
+[build-dependencies]
+embuild = "0.31"
