@@ -1,13 +1,17 @@
 use alloc::ffi::CString;
 use core::task::Poll;
-use embedded_io_async::ErrorType;
+use embedded_io_async::{ErrorType, Read, Write};
 use esp_idf_hal::io::EspIOError;
 use esp_idf_sys::EspError;
 
 pub struct TcpStream(*mut esp_idf_sys::esp_tls);
 
-impl TcpStream {
-    pub async fn connect_http(url: &str, is_plain_tcp: bool) -> Result<Self, EspError> {
+pub trait TcpConnect: Read + Write + Sized {
+    async fn connect_http(url: &str, is_plain_tcp: bool) -> Result<Self, EspError>;
+    async fn connect(host_name: &str, port: u16, is_plain_tcp: bool) -> Result<Self, EspError>;
+}
+impl TcpConnect for TcpStream {
+    async fn connect_http(url: &str, is_plain_tcp: bool) -> Result<Self, EspError> {
         let conn = Self(unsafe { esp_idf_sys::esp_tls_init() });
         let result = {
             let tls = conn.0;
@@ -39,7 +43,7 @@ impl TcpStream {
         }
     }
 
-    pub async fn connect(host_name: &str, port: u16, is_plain_tcp: bool) -> Result<Self, EspError> {
+    async fn connect(host_name: &str, port: u16, is_plain_tcp: bool) -> Result<Self, EspError> {
         let conn = Self(unsafe { esp_idf_sys::esp_tls_init() });
         let result = {
             let tls = conn.0;

@@ -3,6 +3,7 @@ use crate::http::http_url::{HttpUrl, Port};
 use crate::http::{Error, Response, ResponseLazy};
 #[cfg(feature = "proxy")]
 use crate::proxy::Proxy;
+use crate::tcp::TcpConnect;
 use alloc::collections::btree_map::BTreeMap as HashMap;
 use alloc::fmt;
 use alloc::fmt::Write;
@@ -253,24 +254,14 @@ impl Request {
     /// [`minreq::Error`](enum.Error.html) except
     /// [`SerdeJsonError`](enum.Error.html#variant.SerdeJsonError) and
     /// [`InvalidUtf8InBody`](enum.Error.html#variant.InvalidUtf8InBody).
-    pub fn send(self) -> Result<Response, Error> {
+    pub async fn send<C: TcpConnect>(self) -> Result<Response, Error>
+    where
+        C::Error: Into<Error>,
+    {
         let parsed_request = ParsedRequest::new(self)?;
-        if parsed_request.url.https {
-            #[cfg(any(feature = "rustls", feature = "openssl", feature = "native-tls"))]
-            {
-                let is_head = parsed_request.config.method == Method::Head;
-                let response = Connection::new(parsed_request).send_https()?;
-                Response::create(response, is_head)
-            }
-            #[cfg(not(any(feature = "rustls", feature = "openssl", feature = "native-tls")))]
-            {
-                Err(Error::HttpsFeatureNotEnabled)
-            }
-        } else {
-            let is_head = parsed_request.config.method == Method::Head;
-            let response = Connection::new(parsed_request).send()?;
-            Response::create(response, is_head)
-        }
+        let is_head = parsed_request.config.method == Method::Head;
+        let response = Connection::new(parsed_request).send::<C>().await?;
+        Response::create(response, is_head).await
     }
 
     /// Sends this request to the host, loaded lazily.
@@ -278,20 +269,12 @@ impl Request {
     /// # Errors
     ///
     /// See [`send`](struct.Request.html#method.send).
-    pub fn send_lazy(self) -> Result<ResponseLazy, Error> {
+    pub async fn send_lazy<C: TcpConnect>(self) -> Result<ResponseLazy<C>, Error>
+    where
+        C::Error: Into<Error>,
+    {
         let parsed_request = ParsedRequest::new(self)?;
-        if parsed_request.url.https {
-            #[cfg(any(feature = "rustls", feature = "openssl", feature = "native-tls"))]
-            {
-                Connection::new(parsed_request).send_https()
-            }
-            #[cfg(not(any(feature = "rustls", feature = "openssl", feature = "native-tls")))]
-            {
-                Err(Error::HttpsFeatureNotEnabled)
-            }
-        } else {
-            Connection::new(parsed_request).send()
-        }
+        Connection::new(parsed_request).send::<C>().await
     }
 }
 

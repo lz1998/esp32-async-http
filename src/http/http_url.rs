@@ -31,6 +31,8 @@ impl Port {
 #[derive(Clone, PartialEq)]
 pub(crate) struct HttpUrl {
     /// If scheme is "https", true, if "http", false.
+    pub(crate) raw_url: String,
+    /// If scheme is "https", true, if "http", false.
     pub(crate) https: bool,
     /// `host`
     pub(crate) host: String,
@@ -50,6 +52,8 @@ impl HttpUrl {
             PathAndQuery,
             Fragment,
         }
+
+        let raw_url = String::from(url);
 
         let (url, https) = if let Some(after_protocol) = url.strip_prefix("http://") {
             (after_protocol, false)
@@ -162,6 +166,7 @@ impl HttpUrl {
         });
 
         Ok(HttpUrl {
+            raw_url,
             https,
             host,
             port,

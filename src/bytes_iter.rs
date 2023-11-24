@@ -10,3 +10,5 @@ pub trait BytesIter: Read {
         }
     }
 }
+
+impl<R: Read> BytesIter for R {}
