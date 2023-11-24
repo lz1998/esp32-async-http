@@ -15,10 +15,11 @@ no_std = ["esp-idf-hal/critical-section"]
 esp-idf-sys = { version = "0.33", default-features = false }
 esp-idf-hal = { version = "0.42", default-features = false }
 embedded-io-async = { version = "0.6.0", default-features = false }
-#futures = { version = "0.3", default-features = false, features = ["alloc"] }
-#futures-util = { version = "0.3", default-features = false, features = ["alloc"] }
-#futures-core = { version = "0.3", default-features = false, features = ["alloc"] }
-#futures-task = { version = "0.3", default-features = false, features = ["alloc"] }
+futures = { version = "0.3", default-features = false, features = ["alloc"] }
+log = { version = "0.4", default-features = false }
+futures-util = { version = "0.3", default-features = false, features = ["alloc"] }
+futures-core = { version = "0.3", default-features = false, features = ["alloc"] }
+futures-task = { version = "0.3", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
 esp-idf-sys = { version = "0.33", default-features = false, features = ["binstart", "alloc_handler"] }
