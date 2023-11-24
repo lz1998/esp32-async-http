@@ -1,3 +1,4 @@
+use crate::buf_reader::BufReader;
 use crate::http::request::ParsedRequest;
 use crate::http::{Error, Method, ResponseLazy};
 use alloc::string::String;
@@ -20,22 +21,43 @@ impl Connection {
     pub(crate) fn new(request: ParsedRequest) -> Connection {
         Connection { request }
     }
-
+    pub(crate) async fn send<C: TcpConnect>(self) -> Result<ResponseLazy<BufReader<C>>, Error>
+    where
+        Error: From<C::Error>,
+    {
+        let (mut conn, mut response) = self.send_::<C>().await?;
+        let mut next_hop =
+            get_redirect(conn, response.status_code, response.headers.get("location"));
+        while let NextHop::Redirect(res) = next_hop {
+            conn = res?;
+            (conn, response) = conn.send_().await?;
+            next_hop = get_redirect(conn, response.status_code, response.headers.get("location"));
+        }
+        if let NextHop::Destination(connection) = next_hop {
+            let dst_url = connection.request.url;
+            dst_url.write_base_url_to(&mut response.url).unwrap();
+            dst_url.write_resource_to(&mut response.url).unwrap();
+            return Ok(response);
+        }
+        unreachable!()
+    }
     /// Sends the [`Request`](struct.Request.html), consumes this
     /// connection, and returns a [`Response`](struct.Response.html).
-    pub(crate) async fn send<C: TcpConnect>(mut self) -> Result<ResponseLazy<C>, Error>
+    pub(crate) async fn send_<C: TcpConnect>(
+        mut self,
+    ) -> Result<(Self, ResponseLazy<BufReader<C>>), Error>
     where
-        C::Error: Into<Error>,
+        Error: From<C::Error>,
     {
         self.request.url.host = ensure_ascii_host(self.request.url.host)?;
         let bytes = self.request.as_bytes();
 
         log::trace!("Establishing TCP connection to {}.", self.request.url.host);
-        let mut tcp: C = self.connect().await.map_err(Into::into)?;
+        let mut tcp: C = self.connect().await?;
 
         // Send request
         log::trace!("Writing HTTP request.");
-        tcp.write_all(&bytes).await.map_err(Into::into)?;
+        tcp.write_all(&bytes).await?;
 
         // Receive response
         log::trace!("Reading HTTP response.");
@@ -45,7 +67,7 @@ impl Connection {
             self.request.config.max_status_line_len,
         )
         .await?;
-        handle_redirects(self, response).await
+        Ok((self, response))
     }
 
     async fn connect<C: TcpConnect>(&self) -> Result<C, Error> {
@@ -83,28 +105,28 @@ impl Connection {
     }
 }
 
-async fn handle_redirects<C: TcpConnect>(
-    connection: Connection,
-    mut response: ResponseLazy<C>,
-) -> Result<ResponseLazy<C>, Error>
-where
-    C::Error: Into<Error>,
-{
-    let status_code = response.status_code;
-    let url = response.headers.get("location");
-    match get_redirect(connection, status_code, url) {
-        NextHop::Redirect(connection) => {
-            let connection = connection?;
-            connection.send().await
-        }
-        NextHop::Destination(connection) => {
-            let dst_url = connection.request.url;
-            dst_url.write_base_url_to(&mut response.url).unwrap();
-            dst_url.write_resource_to(&mut response.url).unwrap();
-            Ok(response)
-        }
-    }
-}
+// async fn handle_redirects<C: TcpConnect>(
+//     connection: Connection,
+//     mut response: ResponseLazy<C>,
+// ) -> Result<ResponseLazy<C>, Error>
+// where
+//     C::Error: Into<Error>,
+// {
+//     let status_code = response.status_code;
+//     let url = response.headers.get("location");
+//     match get_redirect(connection, status_code, url) {
+//         NextHop::Redirect(connection) => {
+//             let connection = connection?;
+//             connection.send_().await
+//         }
+//         NextHop::Destination(connection) => {
+//             let dst_url = connection.request.url;
+//             dst_url.write_base_url_to(&mut response.url).unwrap();
+//             dst_url.write_resource_to(&mut response.url).unwrap();
+//             Ok(response)
+//         }
+//     }
+// }
 
 enum NextHop {
     Redirect(Result<Connection, Error>),

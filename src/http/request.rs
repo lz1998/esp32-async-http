@@ -1,3 +1,4 @@
+use crate::buf_reader::BufReader;
 use crate::http::connection::Connection;
 use crate::http::http_url::{HttpUrl, Port};
 use crate::http::{Error, Response, ResponseLazy};
@@ -256,7 +257,7 @@ impl Request {
     /// [`InvalidUtf8InBody`](enum.Error.html#variant.InvalidUtf8InBody).
     pub async fn send<C: TcpConnect>(self) -> Result<Response, Error>
     where
-        C::Error: Into<Error>,
+        Error: From<C::Error>,
     {
         let parsed_request = ParsedRequest::new(self)?;
         let is_head = parsed_request.config.method == Method::Head;
@@ -269,9 +270,9 @@ impl Request {
     /// # Errors
     ///
     /// See [`send`](struct.Request.html#method.send).
-    pub async fn send_lazy<C: TcpConnect>(self) -> Result<ResponseLazy<C>, Error>
+    pub async fn send_lazy<C: TcpConnect>(self) -> Result<ResponseLazy<BufReader<C>>, Error>
     where
-        C::Error: Into<Error>,
+        Error: From<C::Error>,
     {
         let parsed_request = ParsedRequest::new(self)?;
         Connection::new(parsed_request).send::<C>().await

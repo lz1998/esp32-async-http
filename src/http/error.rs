@@ -1,4 +1,3 @@
-use core::convert::Infallible;
 use core::fmt::Display;
 use embedded_io_async::ErrorKind;
 use esp_idf_hal::io::EspIOError;
@@ -6,7 +5,7 @@ use esp_idf_hal::io::EspIOError;
 /// Represents an error while sending, receiving, or parsing an HTTP response.
 #[derive(Debug)]
 // TODO: Make non-exhaustive for 3.0?
-pub enum Error<RE = Infallible, WE = Infallible> {
+pub enum Error {
     #[cfg(feature = "json-using-serde")]
     /// Ran into a Serde error.
     SerdeJsonError(serde_json::Error),
@@ -19,8 +18,6 @@ pub enum Error<RE = Infallible, WE = Infallible> {
     RustlsCreateConnection(rustls::Error),
     /// Ran into an IO problem while loading the response.
     IoError(EspIOError),
-    ReadError(RE),
-    WriteError(WE),
     /// Couldn't parse the incoming chunk's length while receiving a
     /// response with the header `Transfer-Encoding: chunked`.
     MalformedChunkLength,
@@ -86,15 +83,13 @@ pub enum Error<RE = Infallible, WE = Infallible> {
     Other(&'static str),
 }
 
-impl<RE: Display, WE: Display> Display for Error<RE, WE> {
+impl Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         use Error::*;
         match self {
             #[cfg(feature = "json-using-serde")]
             SerdeJsonError(err) => write!(f, "{}", err),
             IoError(err) => write!(f, "{}", err),
-            ReadError(err) => write!(f, "{}", err),
-            WriteError(err) => write!(f, "{}", err),
             InvalidUtf8InBody(err) => write!(f, "{}", err),
 
             #[cfg(feature = "rustls")]
@@ -117,8 +112,8 @@ impl<RE: Display, WE: Display> Display for Error<RE, WE> {
             ProxyConnect => write!(f, "could not connect to the proxy server"),
             InvalidProxyCreds => write!(f, "the provided proxy credentials are invalid"),
             // TODO: Uncomment these two for 3.0
-            // InvalidProtocol => write!(f, "the url does not start with http:// or https://"),
-            // InvalidProtocolInRedirect => write!(f, "got redirected to an absolute url which does not start with http:// or https://"),
+            InvalidProtocol => write!(f, "the url does not start with http:// or https://"),
+            InvalidProtocolInRedirect => write!(f, "got redirected to an absolute url which does not start with http:// or https://"),
             Other(msg) => write!(f, "error in minreq: please open an issue in the minreq repo, include the following: '{}'", msg),
         }
     }

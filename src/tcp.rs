@@ -10,6 +10,7 @@ pub trait TcpConnect: Read + Write + Sized {
     async fn connect_http(url: &str, is_plain_tcp: bool) -> Result<Self, EspError>;
     async fn connect(host_name: &str, port: u16, is_plain_tcp: bool) -> Result<Self, EspError>;
 }
+
 impl TcpConnect for TcpStream {
     async fn connect_http(url: &str, is_plain_tcp: bool) -> Result<Self, EspError> {
         let conn = Self(unsafe { esp_idf_sys::esp_tls_init() });
