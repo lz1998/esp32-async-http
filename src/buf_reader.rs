@@ -52,15 +52,6 @@ impl<R: Read> BufReader<R> {
         self.pos = 0;
         self.cap = 0;
     }
-
-    pub async fn next_byte(&mut self) -> Option<Result<u8, R::Error>> {
-        let mut byte = 0;
-        match self.read(core::slice::from_mut(&mut byte)).await {
-            Ok(0) => None,
-            Ok(..) => Some(Ok(byte)),
-            Err(e) => Some(Err(e)),
-        }
-    }
 }
 
 impl<R: Read> ErrorType for BufReader<R> {
