@@ -116,20 +116,20 @@ impl Display for Error {
     }
 }
 
-impl core::error::Error for Error {
-    fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
-        use Error::*;
-        match self {
-            #[cfg(feature = "json-using-serde")]
-            SerdeJsonError(err) => Some(err),
-            IoError(err) => Some(err),
-            InvalidUtf8InBody(err) => Some(err),
-            #[cfg(feature = "rustls")]
-            RustlsCreateConnection(err) => Some(err),
-            _ => None,
-        }
-    }
-}
+// impl core::error::Error for Error {
+//     fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
+//         use Error::*;
+//         match self {
+//             #[cfg(feature = "json-using-serde")]
+//             SerdeJsonError(err) => Some(err),
+//             IoError(err) => Some(err),
+//             InvalidUtf8InBody(err) => Some(err),
+//             #[cfg(feature = "rustls")]
+//             RustlsCreateConnection(err) => Some(err),
+//             _ => None,
+//         }
+//     }
+// }
 
 impl From<EspIOError> for Error {
     fn from(other: EspIOError) -> Error {
