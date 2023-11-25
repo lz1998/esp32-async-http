@@ -1,5 +1,5 @@
 [package]
-name = "esp32-async-http"
+name = "esp32-minreq"
 version = "0.1.0"
 edition = "2021"
 

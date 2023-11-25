@@ -62,13 +62,13 @@ impl fmt::Display for Method {
 
 /// An HTTP request.
 ///
-/// Generally created by the [`minreq::get`](fn.get.html)-style
+/// Generally created by the [`esp32_minreq::get`](fn.get.html)-style
 /// functions, corresponding to the HTTP method we want to use.
 ///
 /// # Example
 ///
 /// ```
-/// let request = minreq::post("http://example.com");
+/// let request = esp32_minreq::post("http://example.com");
 /// ```
 ///
 /// After creating the request, you would generally call
@@ -82,7 +82,6 @@ pub struct Request {
     params: String,
     headers: HashMap<String, String>,
     body: Option<Vec<u8>>,
-    pub(crate) timeout: Option<u64>,
     pub(crate) max_headers_size: Option<usize>,
     pub(crate) max_status_line_len: Option<usize>,
     max_redirects: usize,
@@ -109,7 +108,6 @@ impl Request {
             params: String::new(),
             headers: HashMap::new(),
             body: None,
-            timeout: None,
             max_headers_size: None,
             max_status_line_len: None,
             max_redirects: 100,
@@ -176,12 +174,6 @@ impl Request {
             Ok(json) => Ok(self.with_body(json)),
             Err(err) => Err(Error::SerdeJsonError(err)),
         }
-    }
-
-    /// Sets the request timeout in seconds.
-    pub fn with_timeout(mut self, timeout: u64) -> Request {
-        self.timeout = Some(timeout);
-        self
     }
 
     /// Sets the max redirects we follow until giving up. 100 by
@@ -252,7 +244,7 @@ impl Request {
     /// Returns `Err` if we run into an error while sending the
     /// request, or receiving/parsing the response. The specific error
     /// is described in the `Err`, and it can be any
-    /// [`minreq::Error`](enum.Error.html) except
+    /// [`esp32_minreq::Error`](enum.Error.html) except
     /// [`SerdeJsonError`](enum.Error.html#variant.SerdeJsonError) and
     /// [`InvalidUtf8InBody`](enum.Error.html#variant.InvalidUtf8InBody).
     pub async fn send<C: TcpConnect>(self) -> Result<Response, Error>

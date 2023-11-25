@@ -1,4 +1,4 @@
-//! # Minreq
+//! # Esp32-Minreq
 //!
 //! Simple, minimal-dependency HTTP client.  The library has a very
 //! minimal API, so you'll probably know everything you need to after
@@ -110,8 +110,8 @@
 //! or something could go wrong during the download.
 //!
 //! ```
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! let response = minreq::get("http://example.com").send()?;
+//! # async fn main() -> Result<(), esp32_minreq::Error> {
+//! let response = esp32_minreq::get("http://example.com").send().await?;
 //! assert!(response.as_str()?.contains("</html>"));
 //! assert_eq!(200, response.status_code);
 //! assert_eq!("OK", response.reason_phrase);
@@ -128,8 +128,8 @@
 //! `send()`.
 //!
 //! ```
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! let response = minreq::post("http://example.com")
+//! # fn main() -> Result<(), esp32_minreq::Error>  {
+//! let response = esp32_minreq::post("http://example.com")
 //!     .with_body("Foobar")
 //!     .send()?;
 //! # Ok(()) }
@@ -141,8 +141,8 @@
 //! `send()`.
 //!
 //! ```
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! let response = minreq::get("http://example.com")
+//! # fn main() -> Result<(), esp32_minreq::Error> {
+//! let response = esp32_minreq::get("http://example.com")
 //!     .with_header("Accept", "text/html")
 //!     .send()?;
 //! # Ok(()) }
@@ -158,24 +158,9 @@
 //! this unifies the casings for easier `get()`ing.
 //!
 //! ```
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! let response = minreq::get("http://example.com").send()?;
+//! # fn main() -> Result<(), esp32_minreq::Error> {
+//! let response = esp32_minreq::get("http://example.com").send()?;
 //! assert!(response.headers.get("content-type").unwrap().starts_with("text/html"));
-//! # Ok(()) }
-//! ```
-//!
-//! ## Timeouts
-//!
-//! To avoid timing out, or limit the request's response time, use
-//! `with_timeout(n)` before `send()`. The given value is in seconds.
-//!
-//! NOTE: There is no timeout by default.
-//!
-//! ```no_run
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! let response = minreq::post("http://example.com")
-//!     .with_timeout(10)
-//!     .send()?;
 //! # Ok(()) }
 //! ```
 //!
@@ -189,41 +174,17 @@
 //! supported at this time.
 //!
 //! ```no_run
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # fn main() -> Result<(), esp32_minreq::Error> {
 //! #[cfg(feature = "proxy")]
 //! {
-//!     let proxy = minreq::Proxy::new("localhost:8080")?;
-//!     let response = minreq::post("http://example.com")
+//!     let proxy = esp32_minreq::Proxy::new("localhost:8080")?;
+//!     let response = esp32_minreq::post("http://example.com")
 //!         .with_proxy(proxy)
 //!         .send()?;
 //!     println!("{}", response.as_str()?);
 //! }
 //! # Ok(()) }
 //! ```
-//!
-//! # Timeouts
-//!
-//! By default, a request has no timeout. You can change this in two
-//! ways:
-//!
-//! - Use [`with_timeout`](struct.Request.html#method.with_timeout) on
-//!   your request to set the timeout per-request like so:
-//!   ```
-//!   minreq::get("/").with_timeout(8).send();
-//!   ```
-//! - Set the environment variable `MINREQ_TIMEOUT` to the desired
-//!   amount of seconds until timeout. Ie. if you have a program called
-//!   `foo` that uses minreq, and you want all the requests made by that
-//!   program to timeout in 8 seconds, you launch the program like so:
-//!   ```text,ignore
-//!   $ MINREQ_TIMEOUT=8 ./foo
-//!   ```
-//!   Or add the following somewhere before the requests in the code.
-//!   ```
-//!   std::env::set_var("MINREQ_TIMEOUT", "8");
-//!   ```
-//! If the timeout is set with `with_timeout`, the environment
-//! variable will be ignored.
 
 #![deny(missing_docs)]
 
