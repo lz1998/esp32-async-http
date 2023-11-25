@@ -12,11 +12,12 @@ no_std = ["esp-idf-hal/critical-section"]
 
 [dependencies]
 log = { version = "0.4", default-features = false }
-esp-idf-sys = { version = "0.33", default-features = false }
+esp-idf-sys = { version = "0.33", default-features = false}
 esp-idf-hal = { version = "0.42", default-features = false }
 embedded-io-async = { version = "0.6.0", default-features = false }
 [dev-dependencies]
-esp-idf-sys = { version = "0.33", default-features = false }
+esp-idf-sys = { version = "0.33", default-features = false}
+esp-idf-svc = { version = "0.47", default-features = false ,features = ["alloc"]}
 
 [build-dependencies]
 embuild = "0.31.0"
