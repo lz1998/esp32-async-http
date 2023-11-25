@@ -227,22 +227,6 @@
 
 #![deny(missing_docs)]
 
-#[cfg(feature = "rustls")]
-extern crate rustls;
-#[cfg(feature = "openssl")]
-mod native_tls;
-#[cfg(feature = "openssl")]
-#[macro_use]
-extern crate log;
-#[cfg(all(feature = "native-tls", not(feature = "openssl")))]
-extern crate native_tls;
-#[cfg(feature = "openssl-probe")]
-extern crate openssl_probe;
-#[cfg(feature = "rustls")]
-extern crate webpki;
-#[cfg(feature = "rustls")]
-extern crate webpki_roots;
-
 #[cfg(feature = "json-using-serde")]
 extern crate serde;
 #[cfg(feature = "json-using-serde")]

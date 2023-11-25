@@ -5,5 +5,7 @@ extern crate alloc;
 
 pub mod buf_reader;
 pub mod bytes_iter;
-pub mod http;
+mod http;
 pub mod tcp;
+
+pub use http::*;

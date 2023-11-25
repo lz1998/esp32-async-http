@@ -11,6 +11,7 @@ pub(crate) enum Port {
 }
 
 impl Port {
+    #[allow(dead_code)]
     pub(crate) fn port(self) -> u32 {
         match self {
             Port::ImplicitHttp => 80,
