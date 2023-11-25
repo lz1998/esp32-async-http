@@ -13,9 +13,6 @@ pub enum Error {
     /// conversion failed.
     InvalidUtf8InBody(alloc::str::Utf8Error),
 
-    #[cfg(feature = "rustls")]
-    /// Ran into a rustls error while creating the connection.
-    RustlsCreateConnection(rustls::Error),
     /// Ran into an IO problem while loading the response.
     IoError(EspIOError),
     /// Couldn't parse the incoming chunk's length while receiving a
